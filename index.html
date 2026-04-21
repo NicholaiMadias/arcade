@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcade</title>
+
+  <style>
+    body {
+      background: #050510;
+      color: #e0e0e0;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #00ffea;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    #match-board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      width: 350px;
+    }
+
+    .gem-cell {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background-size: 512px 512px;
+      background-repeat: no-repeat;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #restart-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid #00ffea;
+      background: transparent;
+      color: #00ffea;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Match Maker</h1>
+
+  <div id="match-board"></div>
+
+  <button id="restart-btn">Restart</button>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
