@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arcade – Gamified Learning</title>
+    <style>
+      /* ── Reset & base ─────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+
+      /* ── Header ───────────────────────────────────────────── */
+      .arcade-header {
+        text-align: center;
+        padding: 24px 16px 8px;
+      }
+
+      .arcade-header h1 {
+        font-size: 2.4rem;
+        letter-spacing: 2px;
+        color: #f0c040;
+        text-shadow: 0 0 12px #f0c04088;
+      }
+
+      .arcade-subtitle {
+        font-size: 0.95rem;
+        color: #aaa;
+        margin-top: 4px;
+      }
+
+      .arcade-github-link {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+      }
+
+      .arcade-github-link:hover { opacity: 1; }
+
+      /* ── Main layout ──────────────────────────────────────── */
+      .arcade-main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 16px;
+        width: 100%;
+      }
+
+      /* ── Match Maker wrapper ──────────────────────────────── */
+      .match-maker-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .match-maker-title {
+        font-size: 1.6rem;
+        color: #f0c040;
+        letter-spacing: 1px;
+      }
+
+      .match-maker-score-bar {
+        font-size: 1.1rem;
+        background: #16213e;
+        padding: 6px 24px;
+        border-radius: 20px;
+        border: 1px solid #334;
+      }
+
+      /* ── Board ────────────────────────────────────────────── */
+      .match-maker-board {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), var(--gem-size));
+        grid-template-rows: repeat(8, var(--gem-size));
+        gap: 4px;
+        background: #16213e;
+        padding: 8px;
+        border-radius: 12px;
+        border: 2px solid #334;
+        box-shadow: 0 0 30px #0005;
+      }
+
+      /* ── Gem cells ────────────────────────────────────────── */
+      .mm-gem {
+        width: var(--gem-size);
+        height: var(--gem-size);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        cursor: pointer;
+        user-select: none;
+        transition: filter 0.15s, box-shadow 0.15s;
+        box-shadow: inset 0 -4px 0 #0004;
+        position: relative;
+      }
+
+      .mm-gem:hover {
+        filter: brightness(1.2);
+      }
+
+      .mm-gem.mm-selected {
+        box-shadow: 0 0 0 3px #fff, 0 0 0 5px #f0c040, inset 0 -4px 0 #0004;
+        filter: brightness(1.3);
+        z-index: 2;
+      }
+
+      /* Pop / clear animation */
+      @keyframes mm-pop-anim {
+        0%   { transform: scale(1);   opacity: 1; }
+        50%  { transform: scale(1.35); opacity: 0.8; }
+        100% { transform: scale(0);   opacity: 0; }
+      }
+
+      .mm-gem.mm-pop {
+        animation: mm-pop-anim 0.3s ease forwards;
+      }
+
+      /* ── Restart button ───────────────────────────────────── */
+      .match-maker-btn {
+        margin-top: 4px;
+        padding: 10px 32px;
+        font-size: 1rem;
+        font-weight: 600;
+        background: #f0c040;
+        color: #1a1a2e;
+        border: none;
+        border-radius: 24px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      .match-maker-btn:hover  { background: #ffd060; }
+      .match-maker-btn:active { transform: scale(0.97); }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <a class="arcade-github-link"
+       href="https://github.com/NicholaiMadias/arcade"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="View source on GitHub">
+      <img src="assets/github.svg" alt="GitHub" width="32" height="32" />
+    </a>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
