@@ -4,9 +4,6 @@
  * Features: Cinematic Transitions, Ella as Sheila, Matrix Integration
  */
 
-const fadeInDuration = 600;
-const starPulseIntensity = 1.2;
-
 const StoryConfig = {
     chapters: [
         { id: 1, title: "The Red Queen's Gravity", tone: "heavy", music: "storm.mp3" },
