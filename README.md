@@ -1,5 +1,11 @@
 # arcade
 Gamified Learning Arcade
+
+## GitHub Actions Workflow
+
+The following workflow configuration is used to deploy this arcade to GitHub Pages. This file should be located at `.github/workflows/pages.yml`:
+
+```yaml
 name: Deploy GitHub Pages
 
 on:
@@ -29,3 +35,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+```
