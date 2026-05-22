@@ -1,31 +1,17 @@
-# arcade
-Gamified Learning Arcade
-name: Deploy GitHub Pages
+# Nicholai Arcade
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+Mobile-friendly educational arcade and story platform for **nicholai.org**.
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+## Production
+- Custom domain: `nicholai.org`
+- Primary site: `https://nicholai.org/`
+- Matrix experiences should resolve within this domain instead of a separate matrix subdomain.
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+## Deployment
+GitHub Pages should build and publish from the root of the `main` branch.
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+## Maintenance notes
+- Keep navigation limited to pages and games that are currently working.
+- Remove or avoid links that produce 404s, broken pages, or placeholder content.
+- Prefer fullscreen, mobile-first layouts.
+- Place instructions, related links, next story, and next game content below the main experience to reduce clutter.
