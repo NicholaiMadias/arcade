@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HKZ2G2VN78"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HKZ2G2VN78');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Trinity — master the Star Matrix using CERT values. Match and align to climb stages and log achievements." />
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
+  <title>Trinity | Nexus Arcade</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Orbitron:wght@700;900&display=swap');
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .orbitron { font-family: Orbitron, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translate(-50%, 0); }
+      20%  { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -80px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+      .motion-safe\\:animate-none { animation: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#050505] text-gray-200 flex flex-col items-center overflow-hidden select-none">
+  <header class="w-full max-w-lg p-6 flex items-center justify-between border-b border-white/5 bg-black/50 backdrop-blur-md z-50">
+    <a class="flex items-center gap-3 group" href="/arcade/" aria-label="Back to Nexus Arcade">
+      <div class="w-9 h-9 flex items-center justify-center bg-transparent drop-shadow-[0_0_12px_rgba(168,85,247,0.4)]">
+        <span id="trinity-mark" class="w-full h-full block"></span>
+      </div>
+      <h1 class="text-xl font-black tracking-tighter uppercase orbitron bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-500 to-purple-600">
+        Trinity
+      </h1>
+    </a>
+    <div class="flex items-center gap-2">
+      <a href="/arcade/certificates/" class="hidden sm:inline-flex text-[10px] uppercase tracking-[0.2em] font-black text-yellow-300/80 hover:text-yellow-300 transition-colors">
+        Certificates
+      </a>
+      <button id="mute-btn" class="p-2 hover:bg-white/5 rounded-full transition-colors" aria-label="Toggle sound">
+        <span id="mute-icon" class="w-6 h-6 block text-purple-400"></span>
+      </button>
+    </div>
+  </header>
+
+  <div id="floating-layer" class="fixed inset-0 pointer-events-none z-[60]"></div>
+
+  <main class="flex-1 w-full max-w-lg flex flex-col p-4 relative overflow-y-auto">
+    <!-- Start -->
+    <section id="view-start" class="flex-1 flex flex-col justify-center items-center gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div class="text-center space-y-4">
+        <div class="w-24 h-24 mx-auto drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+          <span id="trinity-mark-lg" class="w-full h-full block"></span>
+        </div>
+        <h2 class="text-3xl font-black uppercase tracking-widest orbitron text-white text-center">Initiate Alignment</h2>
+        <p class="text-gray-500 text-sm italic text-center">Master the Star Matrix using CERT values.</p>
+      </div>
+      <div class="w-full space-y-4">
+        <input id="player-name" type="text" placeholder="Initiate Name" maxlength="24"
+          class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-center orbitron uppercase tracking-widest text-white" />
+        <button id="start-btn" class="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-white">
+          Enter Matrix
+        </button>
+        <p id="firebase-pill" class="text-center text-[10px] uppercase tracking-widest text-gray-600"></p>
+      </div>
+    </section>
+
+    <!-- Game -->
+    <section id="view-game" class="hidden flex-1 flex flex-col justify-center gap-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 relative overflow-hidden group">
+          <div class="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors"></div>
+          <p class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Alignment Goal</p>
+          <p id="hud-goal" class="text-xl font-bold orbitron text-purple-400 text-center relative"></p>
+        </div>
+        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 relative overflow-hidden group">
+          <div class="absolute inset-0 bg-green-500/5 group-hover:bg-green-500/10 transition-colors"></div>
+          <p class="text-[10px] text-gray-500 uppercase tracking-widest text-center">CERT Balance</p>
+          <p id="hud-balance" class="text-xl font-bold orbitron text-green-400 text-center relative"></p>
+        </div>
+      </div>
+
+      <div id="board" class="grid gap-2 bg-white/5 p-3 rounded-3xl border border-white/10 shadow-2xl aspect-square" aria-label="Trinity game board" role="grid"></div>
+
+      <div class="flex justify-center gap-4">
+        <button id="shop-btn" class="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-colors">
+          <span class="w-4 h-4 block text-yellow-500" id="cart-icon"></span>
+          <span class="text-xs uppercase font-bold tracking-widest">CERT Store</span>
+        </button>
+        <button id="leaderboard-btn" class="flex items-center gap-2 px-6 py-3 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-colors">
+          <span class="w-4 h-4 block text-purple-500" id="trophy-icon"></span>
+          <span class="text-xs uppercase font-bold tracking-widest">Rankings</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Complete -->
+    <section id="view-complete" class="hidden flex-1 flex flex-col justify-center items-center text-center gap-8 p-6">
+      <span id="award-icon" class="w-24 h-24 text-yellow-400 motion-safe:animate-none"></span>
+      <div class="space-y-2">
+        <h2 class="text-4xl font-black uppercase orbitron tracking-tighter text-white">Alignment Success</h2>
+        <p class="text-gray-500 italic">CERT data transmitted to the Star Matrix.</p>
+      </div>
+      <button id="submit-score-btn" class="w-full py-4 bg-purple-600 rounded-2xl font-black uppercase tracking-widest shadow-lg hover:bg-purple-500 transition-colors text-white">
+        Log Achievement
+      </button>
+      <button id="complete-home-btn" class="w-full py-3 bg-white/5 border border-white/10 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-colors">
+        Home
+      </button>
+    </section>
+
+    <!-- Shop -->
+    <section id="view-shop" class="hidden flex-1 flex flex-col gap-6 animate-in slide-in-from-right duration-300">
+      <h2 class="text-2xl font-black uppercase tracking-widest orbitron text-center text-white">CERT Store</h2>
+      <p class="text-center text-[10px] text-purple-400 uppercase tracking-widest -mt-4">Creativity • Empathy • Recovery • Trust</p>
+      <div class="space-y-3 overflow-y-auto max-h-[60vh]">
+        <div class="bg-white/5 border border-white/10 p-5 rounded-3xl flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-purple-400"><span id="zap-icon" class="w-5 h-5 block"></span></div>
+            <div>
+              <p class="font-bold text-sm uppercase tracking-wider text-white">Empathy Surge</p>
+              <p class="text-[10px] text-gray-500 italic">+250 Alignment Points</p>
+            </div>
+          </div>
+          <div class="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/30 rounded-xl font-bold text-xs">500</div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 p-5 rounded-3xl flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-purple-400"><span id="shield-icon" class="w-5 h-5 block"></span></div>
+            <div>
+              <p class="font-bold text-sm uppercase tracking-wider text-white">Trust Guide</p>
+              <p class="text-[10px] text-gray-500 italic">Auto-alignment mode</p>
+            </div>
+          </div>
+          <div class="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/30 rounded-xl font-bold text-xs">1500</div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 p-5 rounded-3xl flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-purple-400"><span id="arrow-icon" class="w-5 h-5 block"></span></div>
+            <div>
+              <p class="font-bold text-sm uppercase tracking-wider text-white">Matrix Refresh</p>
+              <p class="text-[10px] text-gray-500 italic">Reset current board</p>
+            </div>
+          </div>
+          <div class="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/30 rounded-xl font-bold text-xs">300</div>
+        </div>
+      </div>
+      <button id="shop-back-btn" class="w-full py-4 bg-zinc-900 border border-white/10 rounded-2xl font-bold uppercase tracking-widest text-xs">Return to Matrix</button>
+    </section>
+
+    <!-- Leaderboard -->
+    <section id="view-leaderboard" class="hidden flex-1 flex flex-col gap-6 animate-in slide-in-from-left duration-300">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-black uppercase tracking-widest orbitron text-center text-white flex-1">Ranking</h2>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex-1 overflow-y-auto">
+        <div id="leaderboard-list"></div>
+        <div id="leaderboard-empty" class="p-12 text-center text-gray-600 italic hidden">No CERT data yet.</div>
+      </div>
+      <button id="leaderboard-home-btn" class="w-full py-4 bg-zinc-900 border border-white/10 rounded-2xl font-bold uppercase tracking-widest text-xs">Home</button>
+    </section>
+  </main>
+
+  <footer id="hud-footer" class="hidden w-full max-w-lg p-6 flex justify-between items-center bg-black/80 backdrop-blur-xl border-t border-white/5 animate-in slide-in-from-bottom duration-500">
+    <div class="flex flex-col">
+      <span class="text-[10px] text-gray-500 uppercase tracking-widest">Stage</span>
+      <span id="hud-level" class="font-bold orbitron text-purple-400"></span>
+    </div>
+    <div class="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div id="hud-progress" class="h-full bg-purple-500 transition-all duration-500" style="width:0%"></div>
+    </div>
+  </footer>
+
+  <div id="error-toast" class="hidden fixed bottom-24 bg-red-600 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl animate-bounce z-[70]"></div>
+
+  <script type="module">
+    const LEVEL_STATS = [
+      { size: 6, goal: 500 }, { size: 6, goal: 1000 }, { size: 7, goal: 1500 },
+      { size: 7, goal: 2000 }, { size: 7, goal: 3000 }, { size: 8, goal: 4500 }, { size: 8, goal: 6000 }
+    ];
+
+    const state = {
+      view: 'start',
+      muted: false,
+      isProcessing: false,
+      level: 1,
+      score: 0,
+      balance: 0,
+      board: [],
+      selected: null,
+      playerName: (localStorage.getItem('playerName') || '').toUpperCase(),
+      leaderboard: [],
+      firebase: { enabled: false, userReady: false, submitAvailable: false }
+    };
+
+    const audioCtxRef = { current: null };
+    const el = {
+      viewStart: document.getElementById('view-start'),
+      viewGame: document.getElementById('view-game'),
+      viewComplete: document.getElementById('view-complete'),
+      viewShop: document.getElementById('view-shop'),
+      viewLeaderboard: document.getElementById('view-leaderboard'),
+      hudFooter: document.getElementById('hud-footer'),
+      muteBtn: document.getElementById('mute-btn'),
+      muteIcon: document.getElementById('mute-icon'),
+      playerName: document.getElementById('player-name'),
+      startBtn: document.getElementById('start-btn'),
+      firebasePill: document.getElementById('firebase-pill'),
+      hudGoal: document.getElementById('hud-goal'),
+      hudBalance: document.getElementById('hud-balance'),
+      hudLevel: document.getElementById('hud-level'),
+      hudProgress: document.getElementById('hud-progress'),
+      board: document.getElementById('board'),
+      floatingLayer: document.getElementById('floating-layer'),
+      shopBtn: document.getElementById('shop-btn'),
+      leaderboardBtn: document.getElementById('leaderboard-btn'),
+      shopBackBtn: document.getElementById('shop-back-btn'),
+      leaderboardHomeBtn: document.getElementById('leaderboard-home-btn'),
+      completeHomeBtn: document.getElementById('complete-home-btn'),
+      submitScoreBtn: document.getElementById('submit-score-btn'),
+      leaderboardList: document.getElementById('leaderboard-list'),
+      leaderboardEmpty: document.getElementById('leaderboard-empty'),
+      errorToast: document.getElementById('error-toast')
+    };
+
+    // --- Icons / marks ---
+    function svgTrinityStars({ color = '#a855f7' } = {}) {
+      return `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g transform="translate(12, 12) scale(0.75)" fill="none" stroke="${color}" stroke-width="1.8">
+            <path d="M0 -12 L10.4 6 L-10.4 6 Z" />
+            <path d="M0 12 L10.4 -6 L-10.4 -6 Z" />
+          </g>
+          <g transform="translate(12, 12) scale(0.25)" fill="${color}">
+            <path d="M0 -12 C0 0 0 0 12 0 C0 0 0 0 0 12 C0 0 0 0 -12 0 C0 0 0 0 0 -12" />
+          </g>
+        </svg>`;
+    }
+
+    function svgVolumeOn() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+        <path d="M15.54 8.46a5 5 0 010 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 010 14.14"></path>
+      </svg>`;
+    }
+    function svgVolumeOff() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+        <path d="M23 9l-6 6"></path>
+        <path d="M17 9l6 6"></path>
+      </svg>`;
+    }
+    function svgTrophy() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M8 21h8"></path>
+        <path d="M12 17a5 5 0 005-5V4H7v8a5 5 0 005 5z"></path>
+        <path d="M5 4H3v3a4 4 0 004 4"></path>
+        <path d="M19 4h2v3a4 4 0 01-4 4"></path>
+      </svg>`;
+    }
+    function svgCart() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.6a2 2 0 002-1.6L23 6H6"></path>
+      </svg>`;
+    }
+    function svgAward() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="8" r="6"></circle>
+        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path>
+      </svg>`;
+    }
+    function svgZap() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+      </svg>`;
+    }
+    function svgShieldCheck() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <path d="M9 12l2 2 4-4"></path>
+      </svg>`;
+    }
+    function svgArrowRight() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M5 12h14"></path>
+        <path d="M13 5l7 7-7 7"></path>
+      </svg>`;
+    }
+
+    document.getElementById('trinity-mark').innerHTML = svgTrinityStars({ color: '#a855f7' });
+    document.getElementById('trinity-mark-lg').innerHTML = svgTrinityStars({ color: '#a855f7' });
+    el.muteIcon.innerHTML = svgVolumeOn();
+    document.getElementById('trophy-icon').innerHTML = svgTrophy();
+    document.getElementById('cart-icon').innerHTML = svgCart();
+    document.getElementById('award-icon').innerHTML = svgAward();
+    document.getElementById('zap-icon').innerHTML = svgZap();
+    document.getElementById('shield-icon').innerHTML = svgShieldCheck();
+    document.getElementById('arrow-icon').innerHTML = svgArrowRight();
+
+    // --- Stars (icons as inline SVG) ---
+    const starIcons = {
+      truth: `<svg viewBox="0 0 24 24" class="w-full h-full" fill="none" stroke="#60a5fa" stroke-width="2" aria-hidden="true"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7z"/></svg>`,
+      compassion: `<svg viewBox="0 0 24 24" class="w-full h-full drop-shadow-md" fill="#ec4899" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+      courage: `<svg viewBox="0 0 24 24" class="w-full h-full drop-shadow-lg" aria-hidden="true">
+        <polygon points="12,12 12,2 14.4,8.8" fill="#fca5a5"/>
+        <polygon points="12,12 14.4,8.8 21.5,8.9" fill="#ef4444"/>
+        <polygon points="12,12 21.5,8.9 15.8,13.2" fill="#dc2626"/>
+        <polygon points="12,12 15.8,13.2 17.9,20.1" fill="#b91c1c"/>
+        <polygon points="12,12 17.9,20.1 12,16" fill="#991b1b"/>
+        <polygon points="12,12 12,16 6.1,20.1" fill="#7f1d1d"/>
+        <polygon points="12,12 6.1,20.1 8.2,13.2" fill="#991b1b"/>
+        <polygon points="12,12 8.2,13.2 2.5,8.9" fill="#b91c1c"/>
+        <polygon points="12,12 2.5,8.9 9.6,8.8" fill="#dc2626"/>
+        <polygon points="12,12 9.6,8.8 12,2" fill="#ef4444"/>
+      </svg>`,
+      knowledge: `<svg viewBox="0 0 24 24" class="w-full h-full drop-shadow-[0_0_10px_rgba(250,204,21,0.7)]" fill="#facc15" aria-hidden="true">
+        <path d="M12 2 C12 12 12 12 22 12 C12 12 12 12 12 22 C12 12 12 12 2 12 C12 12 12 12 12 2 Z" />
+      </svg>`,
+      preciousness: `<svg viewBox="0 0 24 24" class="w-full h-full drop-shadow-lg" aria-hidden="true">
+        <polygon points="12,12 12,2 16,6" fill="#93c5fd"/>
+        <polygon points="12,12 16,6 20,12" fill="#60a5fa"/>
+        <polygon points="12,12 20,12 16,18" fill="#3b82f6"/>
+        <polygon points="12,12 16,18 12,22" fill="#2563eb"/>
+        <polygon points="12,12 12,22 8,18" fill="#1d4ed8"/>
+        <polygon points="12,12 8,18 4,12" fill="#1e40af"/>
+        <polygon points="12,12 4,12 8,6" fill="#1d4ed8"/>
+        <polygon points="12,12 8,6 12,2" fill="#2563eb"/>
+      </svg>`,
+      faith: `<svg viewBox="0 0 24 24" class="w-full h-full drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#ffffff"/>
+        <path d="M11 7h2v3h3v2h-3v5h-2v-5H8v-2h3V7z" fill="#000000"/>
+      </svg>`,
+      radiant: svgTrinityStars({ color: '#ffffff' })
+    };
+
+    const STARS = [
+      { id: 'truth', color: 'text-blue-400', icon: starIcons.truth },
+      { id: 'compassion', color: '', icon: starIcons.compassion },
+      { id: 'courage', color: '', icon: starIcons.courage },
+      { id: 'knowledge', color: '', icon: starIcons.knowledge },
+      { id: 'preciousness', color: '', icon: starIcons.preciousness },
+      { id: 'faith', color: '', icon: starIcons.faith },
+      { id: 'radiant', color: '', icon: starIcons.radiant }
+    ];
+
+    // --- Firebase (optional; safe fallback to local leaderboard) ---
+    let firebaseApi = null;
+    const appId = (typeof window.__app_id !== 'undefined' && window.__app_id) ? window.__app_id : 'default-app-id';
+
+    function safeJsonParse(maybeJson) {
+      try { return JSON.parse(maybeJson); } catch { return null; }
+    }
+
+    function getFirebaseConfig() {
+      if (typeof window.__firebase_config === 'undefined') return null;
+      if (typeof window.__firebase_config === 'string') return safeJsonParse(window.__firebase_config);
+      if (typeof window.__firebase_config === 'object') return window.__firebase_config;
+      return null;
+    }
+
+    async function initFirebase() {
+      const cfg = getFirebaseConfig();
+      const looksConfigured = !!(cfg && typeof cfg === 'object' && cfg.apiKey);
+      if (!looksConfigured) {
+        state.firebase.enabled = false;
+        el.firebasePill.textContent = 'Offline mode (local rankings)';
+        return;
+      }
+
+      el.firebasePill.textContent = 'Connecting…';
+      try {
+        const [
+          { initializeApp },
+          { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged },
+          { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy, limit }
+        ] = await Promise.all([
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js')
+        ]);
+
+        const app = initializeApp(cfg);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        firebaseApi = {
+          addDoc,
+          collection,
+          onSnapshot,
+          serverTimestamp,
+          query,
+          orderBy,
+          limit,
+          auth,
+          db,
+          signInAnonymously,
+          signInWithCustomToken,
+          onAuthStateChanged
+        };
+
+        state.firebase.enabled = true;
+        state.firebase.submitAvailable = true;
+        el.firebasePill.textContent = 'Online rankings enabled';
+
+        try {
+          if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+            await firebaseApi.signInWithCustomToken(firebaseApi.auth, window.__initial_auth_token);
+          } else {
+            await firebaseApi.signInAnonymously(firebaseApi.auth);
+          }
+        } catch (e) {
+          state.firebase.submitAvailable = false;
+          showError('CERT Link offline. Check connection.');
+        }
+
+        firebaseApi.onAuthStateChanged(firebaseApi.auth, (u) => {
+          state.firebase.userReady = !!u;
+          if (u) subscribeLeaderboard();
+        });
+      } catch (e) {
+        state.firebase.enabled = false;
+        state.firebase.submitAvailable = false;
+        el.firebasePill.textContent = 'Offline mode (local rankings)';
+      }
+    }
+
+    function subscribeLeaderboard() {
+      if (!firebaseApi || !state.firebase.enabled) return;
+      const ldrCol = firebaseApi.collection(firebaseApi.db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+      const q = firebaseApi.query(ldrCol, firebaseApi.orderBy('score', 'desc'), firebaseApi.limit(10));
+      firebaseApi.onSnapshot(q,
+        (snap) => {
+          state.leaderboard = snap.docs.map(d => d.data()).slice(0, 10);
+          if (state.view === 'leaderboard') renderLeaderboard();
+        },
+        () => { /* ignore */ }
+      );
+    }
+
+    // --- UI helpers ---
+    function showError(message) {
+      el.errorToast.textContent = message;
+      el.errorToast.classList.remove('hidden');
+      window.clearTimeout(showError._t);
+      showError._t = window.setTimeout(() => el.errorToast.classList.add('hidden'), 2200);
+      playTone('error');
+    }
+
+    function setView(next) {
+      state.view = next;
+      el.viewStart.classList.toggle('hidden', next !== 'start');
+      el.viewGame.classList.toggle('hidden', next !== 'game');
+      el.viewComplete.classList.toggle('hidden', next !== 'complete');
+      el.viewShop.classList.toggle('hidden', next !== 'shop');
+      el.viewLeaderboard.classList.toggle('hidden', next !== 'leaderboard');
+      el.hudFooter.classList.toggle('hidden', next !== 'game');
+      if (next === 'leaderboard') renderLeaderboard();
+    }
+
+    function playTone(type) {
+      if (state.muted) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = audioCtxRef.current;
+
+      function play(freq, wave, dur, vol) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = wave;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + dur);
+      }
+
+      if (type === 'coin') {
+        play(987.77, 'sine', 0.1, 0.1);
+        setTimeout(() => play(1318.51, 'sine', 0.2, 0.1), 50);
+      } else if (type === 'oneup') {
+        [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => play(f, 'sine', 0.15, 0.08), i * 80));
+      } else if (type === 'click') {
+        play(400, 'sine', 0.05, 0.05);
+      } else if (type === 'error') {
+        play(150, 'triangle', 0.2, 0.1);
+      }
+    }
+
+    function triggerFloatingText(cellIndex, value) {
+      const cell = el.board.children[cellIndex];
+      if (!cell) return;
+      const rect = cell.getBoundingClientRect();
+      const id = String(Date.now()) + String(Math.random());
+
+      const div = document.createElement('div');
+      div.dataset.id = id;
+      div.className = 'absolute text-yellow-400 font-black text-xl orbitron';
+      div.style.left = (rect.left + rect.width / 2) + 'px';
+      div.style.top = rect.top + 'px';
+      div.style.transform = 'translate(-50%, -100%)';
+      div.style.animation = 'floatUp 1s ease-out forwards';
+      div.style.textShadow = '0 0 10px rgba(250,204,21,0.5)';
+      div.textContent = `+${value}`;
+      el.floatingLayer.appendChild(div);
+      setTimeout(() => div.remove(), 1000);
+    }
+
+    // --- Game logic ---
+    function goalForLevel(level) {
+      return LEVEL_STATS[Math.max(0, Math.min(level - 1, LEVEL_STATS.length - 1))].goal;
+    }
+    function sizeForLevel(level) {
+      return LEVEL_STATS[Math.max(0, Math.min(level - 1, LEVEL_STATS.length - 1))].size;
+    }
+
+    function initBoard() {
+      const size = sizeForLevel(state.level);
+      state.board = Array.from({ length: size * size }, () => Math.floor(Math.random() * STARS.length));
+      state.score = 0;
+      state.selected = null;
+      state.isProcessing = false;
+      renderHUD();
+      renderBoard();
+      requestAnimationFrame(() => checkMatches({ silent: true }));
+    }
+
+    function checkMatches({ silent } = { silent: false }) {
+      const size = sizeForLevel(state.level);
+      const matched = new Set();
+      const b = state.board;
+
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size - 2; c++) {
+          const i = r * size + c;
+          if (b[i] === b[i + 1] && b[i] === b[i + 2]) {
+            matched.add(i); matched.add(i + 1); matched.add(i + 2);
+          }
+        }
+      }
+
+      for (let c = 0; c < size; c++) {
+        for (let r = 0; r < size - 2; r++) {
+          const i1 = r * size + c;
+          const i2 = (r + 1) * size + c;
+          const i3 = (r + 2) * size + c;
+          if (b[i1] === b[i2] && b[i1] === b[i3]) {
+            matched.add(i1); matched.add(i2); matched.add(i3);
+          }
+        }
+      }
+
+      if (matched.size > 0) {
+        if (!silent) {
+          const pts = matched.size * 10 + (matched.size > 3 ? 100 : 0);
+          state.score += pts;
+          state.balance += pts;
+          triggerFloatingText([...matched][0], pts);
+          playTone(matched.size > 3 ? 'oneup' : 'coin');
+        }
+        for (const idx of matched) {
+          state.board[idx] = Math.floor(Math.random() * STARS.length);
+        }
+        renderHUD();
+        renderBoard();
+        setTimeout(() => checkMatches({ silent }), 380);
+        return true;
+      }
+
+      if (!silent && state.score >= goalForLevel(state.level)) handleWin();
+      return false;
+    }
+
+    function areAdjacent(a, b) {
+      const size = sizeForLevel(state.level);
+      const r1 = Math.floor(a / size), c1 = a % size;
+      const r2 = Math.floor(b / size), c2 = b % size;
+      return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+    }
+
+    function handleSwap(idx) {
+      if (state.isProcessing) return;
+      if (state.selected == null) {
+        state.selected = idx;
+        playTone('click');
+        renderBoard();
+        return;
+      }
+
+      const from = state.selected;
+      const to = idx;
+      state.selected = null;
+
+      if (!areAdjacent(from, to)) {
+        playTone('click');
+        renderBoard();
+        return;
+      }
+
+      state.isProcessing = true;
+      const prev = state.board.slice();
+      [state.board[from], state.board[to]] = [state.board[to], state.board[from]];
+      renderBoard();
+
+      setTimeout(() => {
+        const matched = checkMatches({ silent: false });
+        if (!matched) {
+          playTone('error');
+          state.board = prev;
+          renderBoard();
+        }
+        state.isProcessing = false;
+      }, 260);
+    }
+
+    function handleWin() {
+      playTone('oneup');
+      if (state.level < 7) {
+        state.level += 1;
+        setView('game');
+        initBoard();
+      } else {
+        setView('complete');
+      }
+    }
+
+    function renderHUD() {
+      el.hudGoal.textContent = `${state.score} / ${goalForLevel(state.level)}`;
+      el.hudBalance.textContent = state.balance.toLocaleString();
+      el.hudLevel.textContent = String(state.level);
+      const pct = Math.min(100, (state.score / goalForLevel(state.level)) * 100);
+      el.hudProgress.style.width = pct.toFixed(2) + '%';
+    }
+
+    function renderBoard() {
+      const size = sizeForLevel(state.level);
+      el.board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+      el.board.innerHTML = '';
+
+      state.board.forEach((sIdx, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('role', 'gridcell');
+        btn.className = [
+          'aspect-square rounded-xl flex items-center justify-center transition-all duration-300',
+          (state.selected === i) ? 'scale-90 ring-4 ring-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.6)] z-10' : 'bg-zinc-900 border border-white/5 hover:border-white/20 shadow-inner',
+          STARS[sIdx]?.color || ''
+        ].join(' ');
+        btn.innerHTML = `<div class="w-2/3 h-2/3 drop-shadow-lg flex items-center justify-center">${STARS[sIdx]?.icon || ''}</div>`;
+        btn.addEventListener('click', () => handleSwap(i));
+        el.board.appendChild(btn);
+      });
+    }
+
+    // --- Leaderboard (remote if available; otherwise local) ---
+    function readLocalLeaderboard() {
+      try {
+        const raw = localStorage.getItem('trinity-leaderboard') || '[]';
+        const list = JSON.parse(raw);
+        if (!Array.isArray(list)) return [];
+        return list.sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 10);
+      } catch {
+        return [];
+      }
+    }
+
+    function writeLocalLeaderboard(entry) {
+      const list = readLocalLeaderboard();
+      list.push(entry);
+      const next = list.sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 10);
+      try { localStorage.setItem('trinity-leaderboard', JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    }
+
+    function renderLeaderboard() {
+      const data = (state.firebase.enabled && state.leaderboard.length > 0) ? state.leaderboard : readLocalLeaderboard();
+      el.leaderboardList.innerHTML = '';
+      el.leaderboardEmpty.classList.toggle('hidden', data.length !== 0);
+      if (data.length === 0) return;
+
+      data.forEach((entry, i) => {
+        const row = document.createElement('div');
+        row.className = 'p-4 border-b border-white/5 flex justify-between items-center';
+        const name = (entry.name || 'Anonymous').toString().toUpperCase();
+        const score = Number(entry.score || 0);
+        row.innerHTML = `
+          <div class="flex items-center gap-4">
+            <span class="orbitron text-purple-500 font-bold">#${String(i + 1).padStart(2, '0')}</span>
+            <span class="font-bold uppercase tracking-wider text-sm text-white">${escapeHtml(name)}</span>
+          </div>
+          <span class="orbitron text-green-400 font-bold">${score.toLocaleString()}</span>`;
+        el.leaderboardList.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function submitScore() {
+      const name = (state.playerName || 'Anonymous').toUpperCase();
+      const score = state.balance;
+
+      if (state.firebase.enabled && state.firebase.userReady && state.firebase.submitAvailable && firebaseApi) {
+        try {
+          await firebaseApi.addDoc(firebaseApi.collection(firebaseApi.db, 'artifacts', appId, 'public', 'data', 'leaderboard'), {
+            name,
+            score,
+            timestamp: firebaseApi.serverTimestamp()
+          });
+          setView('leaderboard');
+          return;
+        } catch {
+          showError('Ranking sync failed.');
+        }
+      }
+
+      state.leaderboard = writeLocalLeaderboard({ name, score, timestamp: Date.now() });
+      setView('leaderboard');
+    }
+
+    // --- Events ---
+    function startGame() {
+      state.playerName = (el.playerName.value || '').trim().toUpperCase();
+      if (state.playerName) {
+        try { localStorage.setItem('playerName', state.playerName); } catch { /* ignore */ }
+      }
+      state.level = 1;
+      state.balance = 0;
+      setView('game');
+      initBoard();
+    }
+
+    el.playerName.value = state.playerName;
+    el.playerName.addEventListener('input', () => el.playerName.value = el.playerName.value.toUpperCase());
+    el.playerName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startGame();
+    });
+    el.startBtn.addEventListener('click', startGame);
+
+    el.muteBtn.addEventListener('click', () => {
+      state.muted = !state.muted;
+      el.muteIcon.innerHTML = state.muted ? svgVolumeOff() : svgVolumeOn();
+    });
+
+    el.shopBtn.addEventListener('click', () => setView('shop'));
+    el.leaderboardBtn.addEventListener('click', () => setView('leaderboard'));
+    el.shopBackBtn.addEventListener('click', () => setView('game'));
+    el.leaderboardHomeBtn.addEventListener('click', () => setView('start'));
+    el.completeHomeBtn.addEventListener('click', () => setView('start'));
+    el.submitScoreBtn.addEventListener('click', submitScore);
+
+    // init
+    renderHUD();
+    setView('start');
+    initFirebase();
+  </script>
+</body>
+</html>
